@@ -6,3 +6,4 @@ class HomePageChangeEvent {
   String url;
   HomePageChangeEvent(this.url);
 }
+class HomeActivationEvent {}

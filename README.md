@@ -4,7 +4,24 @@ A new Flutter project.
 
 ## TODO
 
-- jsbridge
 - env
 - android file choose
-- browser in app
+- ios disable bouncing
+
+## Note
+
+### /android/app/src/main/AndroidManifest.xml
+```
+android:usesCleartextTraffic="true"
+```
+
+### /ios/Runner/Info.plist
+```
+<key>io.flutter.embedded_views_preview</key>
+<true/>
+<key>NSAppTransportSecurity</key>
+<dict>
+  <key>NSAllowsArbitraryLoads</key>
+  <true/>
+</dict>
+```

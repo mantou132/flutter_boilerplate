@@ -8,14 +8,29 @@ import './eventbus.dart';
 import './utils.dart';
 import './config.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  String statusBarStyle = STATUSBAR_STYLE;
   final Completer<WebViewController> _controller = Completer<WebViewController>();
 
-  Home() {
+  _HomeState() {
     eventBus.on<HomePageChangeEvent>().listen((HomePageChangeEvent event) async {
-      print('home==========>$event');
+      print('HomePageChangeEvent==========>$event');
       var controller = await _controller.future;
       controller.loadUrl(event.url);
+    });
+    eventBus.on<HomeActivationEvent>().listen((HomeActivationEvent event) async {
+      Timer(Duration(milliseconds: 500), () => setState(() {}));
+    });
+  }
+
+  _setStatusbarStyle(String style) {
+    setState(() {
+      statusBarStyle = style;
     });
   }
 
@@ -55,6 +70,9 @@ class Home extends StatelessWidget {
             case 'open': 
               _openWebPage(context, msg['data']);
               break;
+            case 'statusbarstyle': 
+              _setStatusbarStyle(msg['data']);
+              break;
           }
         } finally {
           print(message.message);
@@ -74,9 +92,12 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      // MediaQuery must use MaterialApp context
+    print('=========>Homebuild');
+    SystemUiOverlayStyle baseStatusBarStyle = statusBarStyle == 'light' ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark;
+    // MediaQuery must use MaterialApp context
+    SystemChrome.setSystemUIOverlayStyle(baseStatusBarStyle);
     if (MediaQuery.of(context).padding.top > 28) {
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
+      SystemChrome.setSystemUIOverlayStyle(baseStatusBarStyle.copyWith(
         statusBarColor: Colors.transparent,
       ));
     }

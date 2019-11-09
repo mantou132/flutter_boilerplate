@@ -6,13 +6,33 @@ import './utils.dart';
 import './eventbus.dart';
 import './config.dart';
 
-class WebPage extends StatelessWidget {
-  final Completer<WebViewController> _controller = Completer<WebViewController>();
+class WebPage extends StatefulWidget {
   final String url;
   WebPage(this.url);
+  @override
+  _WebPageState createState() => _WebPageState(url);
+}
+class _WebPageState extends State<WebPage> {
+  String title = '';
+
+  final Completer<WebViewController> _controller = Completer<WebViewController>();
+  final String url;
+  _WebPageState(this.url);
 
   _close(BuildContext context) {
+    eventBus.fire(HomeActivationEvent());
     Navigator.pop(context);
+  }
+
+  Future<bool> _onWillPop() async {
+    eventBus.fire(HomeActivationEvent());
+    return true;
+  }
+
+  _updateTitle() async {
+    WebViewController controller = await _controller.future;
+    String t = await controller.getTitle();
+    setState((){ title = t; });
   }
 
   JavascriptChannel _getJavascriptChannel(BuildContext context) {
@@ -47,29 +67,33 @@ class WebPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // TODO: color
-        backgroundColor: Colors.white,
-        // TODO: change title
-        title: const Text('Flutter WebView example'),
+    return Theme(
+      data: ThemeData(
+        primaryColor: Colors.white,
       ),
-      body: Builder(builder: (BuildContext context) {
-        return WebView(
-          initialUrl: url,
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller.complete(webViewController);
-          },
-          debuggingEnabled: DEBUG,
-          javascriptChannels: <JavascriptChannel>[
-            _getJavascriptChannel(context),
-          ].toSet(),
-          navigationDelegate: (NavigationRequest request) {
-            return _navigationDelegate(context, request);
-          },
-        );
-      }),
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        child: Scaffold(
+          appBar: AppBar(title: Text(title)),
+          body: Builder(builder: (BuildContext context) {
+            return WebView(
+              onPageFinished: (String url) => _updateTitle(),
+              initialUrl: url,
+              javascriptMode: JavascriptMode.unrestricted,
+              onWebViewCreated: (WebViewController webViewController) {
+                _controller.complete(webViewController);
+              },
+              debuggingEnabled: DEBUG,
+              javascriptChannels: <JavascriptChannel>[
+                _getJavascriptChannel(context),
+              ].toSet(),
+              navigationDelegate: (NavigationRequest request) {
+                return _navigationDelegate(context, request);
+              },
+            );
+          }),
+        ),
+      ),
     );
   }
 }
