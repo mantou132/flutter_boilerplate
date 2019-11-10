@@ -7,6 +7,7 @@ A new Flutter project.
 - env
 - android file choose
 - ios disable bouncing
+- launch_background + MaterialAppBackgroundColor + WebViewBackground
 
 ## Note
 
